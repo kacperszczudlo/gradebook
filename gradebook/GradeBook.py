@@ -5,12 +5,10 @@ import os
 # Ścieżka do pliku
 FILENAME = "dziennik.json"
 
-
 # Funkcja zapisu do pliku
 def save_data():
     with open(FILENAME, 'w') as file:
         json.dump(subjects, file)
-
 
 # Funkcja wczytania danych z pliku
 def load_data():
@@ -43,20 +41,21 @@ def load_data():
                 return data
     return default_structure
 
-
 # Wczytanie danych
 subjects = load_data()
-
 
 # Funkcje do obsługi dziennika
 def add_grade():
     subject = subject_var.get()
     grade = grade_entry.get()
-    if subject and grade.isdigit() and 2 <= int(grade) <= 5:
-        subjects[subject]['oceny'].append(int(grade))
-        update_display()
-        save_data()  # Zapisanie danych po dodaniu oceny
-
+    try:
+        grade_float = float(grade)
+        if subject and 2 <= grade_float <= 5:
+            subjects[subject]['oceny'].append(grade_float)
+            update_display()
+            save_data()  # Zapisanie danych po dodaniu oceny
+    except ValueError:
+        pass  # Możesz dodać komunikat o błędzie, jeśli potrzebujesz
 
 def add_absent():
     subject = subject_var.get()
@@ -66,7 +65,6 @@ def add_absent():
             subjects[subject]['nieobecnosci'] += 1
         update_display()
         save_data()  # Zapisanie danych po dodaniu nieobecności
-
 
 def update_display():
     display.delete(1.0, tk.END)
@@ -78,7 +76,6 @@ def update_display():
         nieobecnosci_info = f"{data['nieobecnosci']}/{data['max_nieobecnosci']}"
         row = f"{subject:<40}{oceny:<20}{nieobecnosci_info:<15}\n"
         display.insert(tk.END, row)
-
 
 # Konfiguracja GUI
 root = tk.Tk()
