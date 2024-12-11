@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import json
 import os
 
@@ -67,42 +68,74 @@ def add_absent():
         save_data()  # Zapisanie danych po dodaniu nieobecności
 
 def update_display():
-    display.delete(1.0, tk.END)
-    header = f"{'Przedmiot':<40}{'Oceny':<20}{'Nieobecności':<15}\n"
-    display.insert(tk.END, header)
-    display.insert(tk.END, "-" * 75 + "\n")
+    for i in tree.get_children():
+        tree.delete(i)
     for subject, data in subjects.items():
         oceny = ', '.join(map(str, data['oceny'])) if data['oceny'] else "Brak"
         nieobecnosci_info = f"{data['nieobecnosci']}/{data['max_nieobecnosci']}"
-        row = f"{subject:<40}{oceny:<20}{nieobecnosci_info:<15}\n"
-        display.insert(tk.END, row)
+        tree.insert('', tk.END, values=(subject, oceny, nieobecnosci_info))
 
 # Konfiguracja GUI
 root = tk.Tk()
 root.title("Dziennik")
+root.configure(bg='#e0f7fa')
 
 subject_var = tk.StringVar(value="Systemy operacyjne")
 
 # Etykiety i pola wyboru
-tk.Label(root, text="Wybierz przedmiot:").pack()
-subject_menu = tk.OptionMenu(root, subject_var, *subjects.keys())
-subject_menu.pack()
+tk.Label(root, text="Wybierz przedmiot:", bg='#e0f7fa', fg='#00695c', font=('Arial', 12)).pack(pady=5)
+
+# Nowoczesna lista rozwijana
+subject_menu = ttk.Combobox(root, textvariable=subject_var, values=list(subjects.keys()), font=('Arial', 12), state="readonly")
+subject_menu.pack(pady=5)
+subject_menu.config(width=35)  # Ustawienie szerokości
 
 # Sekcja oceny
-tk.Label(root, text="Wprowadź ocenę (2-5):").pack()
+tk.Label(root, text="Wprowadź ocenę (2-5):", bg='#e0f7fa', fg='#00695c', font=('Arial', 12)).pack(pady=5)
 grade_entry = tk.Entry(root)
-grade_entry.pack()
+grade_entry.pack(pady=5)
 
 # Przycisk dodawania oceny
-tk.Button(root, text="Dodaj ocenę", command=add_grade).pack()
+add_grade_button = tk.Button(root, text="Dodaj ocenę", command=add_grade, bg='#00796b', fg='white', font=('Arial', 12, 'bold'))
+add_grade_button.pack(pady=5)
 
 # Przycisk dodawania nieobecności
-tk.Button(root, text="Dodaj nieobecność", command=add_absent).pack()
+add_absent_button = tk.Button(root, text="Dodaj nieobecność", command=add_absent, bg='#00796b', fg='white', font=('Arial', 12, 'bold'))
+add_absent_button.pack(pady=5)
 
-# Wyświetlanie danych
-tk.Label(root, text="Twoje oceny i nieobecności:").pack()
-display = tk.Text(root, height=20, width=75)
-display.pack()
+# Wyświetlanie danych w tabeli
+tk.Label(root, text="Twoje oceny i nieobecności:", bg='#e0f7fa', fg='#00695c', font=('Arial', 12)).pack(pady=5)
+style = ttk.Style()
+style.configure("Treeview", background="#D3D3D3", foreground="black", rowheight=25, fieldbackground="#D3D3D3")
+style.map("Treeview", background=[('selected', '#00695c')])
+
+tree = ttk.Treeview(root, columns=("Przedmiot", "Oceny", "Nieobecności"), show='headings', height=10)
+tree.pack(pady=10)
+
+tree.heading("Przedmiot", text="Przedmiot")
+tree.heading("Oceny", text="Oceny")
+tree.heading("Nieobecności", text="Nieobecności")
+
+tree.column("Przedmiot", anchor=tk.W, width=300)
+tree.column("Oceny", anchor=tk.W, width=200)
+tree.column("Nieobecności", anchor=tk.W, width=150)
+
+# Dodanie linii siatki
+tree.tag_configure('oddrow', background='#f4f4f4')
+tree.tag_configure('evenrow', background='white')
+
+def update_display():
+    for i in tree.get_children():
+        tree.delete(i)
+    count = 0
+    for subject, data in subjects.items():
+        oceny = ', '.join(map(str, data['oceny'])) if data['oceny'] else "Brak"
+        nieobecnosci_info = f"{data['nieobecnosci']}/{data['max_nieobecnosci']}"
+        if count % 2 == 0:
+            tree.insert('', tk.END, values=(subject, oceny, nieobecnosci_info), tags=('evenrow',))
+        else:
+            tree.insert('', tk.END, values=(subject, oceny, nieobecnosci_info), tags=('oddrow',))
+        count += 1
 
 update_display()
 
